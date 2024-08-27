@@ -133,7 +133,7 @@ input:focus {
 .gallery {
   width: 1440px;
   display: flex;
-  padding: 24px 156px;
+  padding: 24px 156px 0;
   justify-content: flex-start;
   flex-wrap: wrap;
   align-items: flex-start;
@@ -184,4 +184,28 @@ input:focus {
   100% {
     transform: rotate(360deg);
   }
+}
+
+/* Load More Btn */
+
+.load-btn {
+  display: block;
+  margin: 32px auto;
+  padding: 8px 16px;
+  gap: 10px;
+  border-radius: 8px;
+  background: #4e75ff;
+  border: none;
+  color: #fff;
+  font-weight: 500;
+  line-height: 24px;
+  cursor: pointer;
+}
+
+.load-btn.is-hidden {
+  display: none;
+}
+
+.load-btn:hover {
+  background-color: #6c8cff;
 }
