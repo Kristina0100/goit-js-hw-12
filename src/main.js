@@ -12,37 +12,10 @@ const searchFormEl = document.querySelector('.js-search-form');
 const galleryEl = document.querySelector('.js-gallery');
 const loaderEl = document.querySelector('.loader');
 const loadMoreBtnEl = document.querySelector('.js-load-btn');
-const observeredEl = document.querySelector('.js-observered-element');
 
 let currentPage = 1;
 let inputValue = '';
-
-const observerOptions = {
-  root: null,
-  rootMargin: '0px 0px 400px 0px',
-  threshold: 1,
-};
-
-const observerCallBack = async entries => {
-  if (entries[0].isIntersecting) {
-    try {
-      currentPage++;
-
-      const response = await fetchPhotos(inputValue, currentPage);
-
-         const galleryCardsTemplate = response.data.hits.map(imgInfo => createGalleryTemplate(imgInfo)).join('');
-
-      galleryEl.insertAdjacentHTML('beforeend', galleryCardsTemplate);
-
-      if (currentPage === response.data.totalHits) {
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  }
-};
-
-const observer = new IntersectionObserver(observerCallBack, observerOptions);
+let cardHeight = 0;
 
 const onFormSubmit = async event => {
   try {
@@ -53,8 +26,14 @@ const onFormSubmit = async event => {
     loadMoreBtnEl.classList.add('is-hidden');
 
     if (!inputValue) {
-      iziToast.warning({
+      iziToast.show({
         message: 'Please enter a search term',
+        messageColor: '#fff',
+        messageSize: '16px',
+        messageLineHeight: '24px',
+        iconColor: '#fff',
+        iconUrl: '/img/warning.svg',
+        backgroundColor: '#FC7A66',
         position: 'topRight',
         closeOnClick: true,
       });
@@ -91,6 +70,9 @@ const onFormSubmit = async event => {
     const galleryCardsTemplate = response.data.hits.map(imgInfo => createGalleryTemplate(imgInfo)).join('');
     galleryEl.innerHTML = galleryCardsTemplate;
     loadMoreBtnEl.classList.remove('is-hidden');
+
+    const galleryCardEl = galleryEl.querySelector('li');
+    cardHeight = galleryCardEl.getBoundingClientRect().height;
                 
     const lightbox = new SimpleLightbox('.gallery a', {
       captionsData: 'alt',
@@ -98,8 +80,6 @@ const onFormSubmit = async event => {
     });
 
     lightbox.refresh();
-
-    observer.observe(observeredEl);
 
   }  catch(err) {
 
@@ -125,6 +105,8 @@ const onFormSubmit = async event => {
 
 const onLoadBtnClick = async event => {
   try {
+    loaderEl.classList.remove('is-hidden'); 
+
     currentPage++;
     const response = await fetchPhotos(inputValue, currentPage);
 
@@ -138,30 +120,47 @@ const onLoadBtnClick = async event => {
 
     lightbox.refresh();
 
-    //     scrollBy({
-    //   top: cardHeight * 2,
-    //   behavior: 'smooth',
-    // });
 
-    if (currentPage === response.data.totalHits) {
-    loadMoreBtnEl.classList.add('is-hidden');
-
-    iziToast.show({
-    message: `We're sorry, but you've reached the end of search results.`,
-    messageColor: '#fff',
-    titleColor: '#fff',
-    messageSize: '16px',
-    messageLineHeight: '24px',
-    position: 'topRight',
-    closeOnClick: true,
-    maxWidth: '350px',
-    backgroundColor: '#6c8cff',
-    progressBarColor: '#4e75ff',
-    iconUrl: '/img/sad_face.svg',
+    scrollBy({
+      top: cardHeight * 2,
+      behavior: 'smooth',
     });
-  };
+
+    const totalLoadedPhotos = currentPage * 15;
+    if (totalLoadedPhotos >= response.data.totalHits) {
+       loadMoreBtnEl.classList.add('is-hidden');
+          iziToast.show({
+      message: `We're sorry, but you've reached the end of search results.`,
+      messageColor: '#fff',
+      titleColor: '#fff',
+      messageSize: '16px',
+      messageLineHeight: '24px',
+      position: 'topRight',
+      closeOnClick: true,
+      maxWidth: '350px',
+      backgroundColor: '#6c8cff',
+      progressBarColor: '#4e75ff',
+      iconUrl: '/img/sad_face.svg',
+      });
+    };
+    
+     loaderEl.classList.add('is-hidden');
 
   } catch (err) {
+     iziToast.show({
+      title: 'Error',
+      message: `Something went wrong. Please try again later.`,
+      messageColor: '#fff',
+      titleColor: '#fff',
+      messageSize: '16px',
+      messageLineHeight: '24px',
+      position: 'topRight',
+      closeOnClick: true,
+      maxWidth: '420px',
+      backgroundColor: '#EF4040',
+      progressBarColor: '#B51B1B',
+      iconUrl: '/img/error.svg',
+    });
   };
 };
 
