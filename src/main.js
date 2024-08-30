@@ -7,6 +7,9 @@ import "simplelightbox/dist/simple-lightbox.min.css";
 import { createGalleryTemplate } from '/js/render-functions';
 import { fetchPhotos } from '/js/pixabay-api';
 
+const errorIcon = '/img/error.svg';
+const warningIcon = '/img/warning.svg';
+const sadFaceIcon = '/img/sad_face.svg';
 
 const searchFormEl = document.querySelector('.js-search-form');
 const galleryEl = document.querySelector('.js-gallery');
@@ -16,6 +19,48 @@ const loadMoreBtnEl = document.querySelector('.js-load-btn');
 let currentPage = 1;
 let inputValue = '';
 let cardHeight = 0;
+
+const lightbox = new SimpleLightbox('.gallery a', {
+  captionsData: 'alt',
+  captionDelay: 250,
+});
+
+const checkEndOfResults = totalHits => {
+  const totalLoadedPhotos = currentPage * 15;
+  if (totalLoadedPhotos >= totalHits) {
+    loadMoreBtnEl.classList.add('is-hidden');
+    iziToast.show({
+      message: `We're sorry, but you've reached the end of search results.`,
+      messageColor: '#fff',
+      titleColor: '#fff',
+      messageSize: '16px',
+      messageLineHeight: '24px',
+      position: 'topRight',
+      closeOnClick: true,
+      maxWidth: '350px',
+      backgroundColor: '#6c8cff',
+      progressBarColor: '#4e75ff',
+      iconUrl: sadFaceIcon,
+    });
+  };
+};
+
+const showErrorMessage = () => {
+  iziToast.show({
+    title: 'Error',
+    message: `Something went wrong. Please try again later.`,
+    messageColor: '#fff',
+    titleColor: '#fff',
+    messageSize: '16px',
+    messageLineHeight: '24px',
+    position: 'topRight',
+    closeOnClick: true,
+    maxWidth: '420px',
+    backgroundColor: '#EF4040',
+    progressBarColor: '#B51B1B',
+    iconUrl: '/img/error.svg',
+  });
+};
 
 const onFormSubmit = async event => {
   try {
@@ -32,13 +77,13 @@ const onFormSubmit = async event => {
         messageSize: '16px',
         messageLineHeight: '24px',
         iconColor: '#fff',
-        iconUrl: '/img/warning.svg',
+        iconUrl: warningIcon,
         backgroundColor: '#FC7A66',
         position: 'topRight',
         closeOnClick: true,
       });
       return;
-    }
+    };
 
     loaderEl.classList.remove("is-hidden");
     galleryEl.innerHTML = '';
@@ -51,7 +96,7 @@ const onFormSubmit = async event => {
         messageColor: '#fff',
         messageSize: '16px',
         messageLineHeight: '24px',
-        iconUrl: '/img/error.svg',
+        iconUrl: errorIcon,
         backgroundColor: '#EF4040',
         maxWidth: '350px',
         closeOnClick: true,
@@ -73,32 +118,14 @@ const onFormSubmit = async event => {
 
     const galleryCardEl = galleryEl.querySelector('li');
     cardHeight = galleryCardEl.getBoundingClientRect().height;
-                
-    const lightbox = new SimpleLightbox('.gallery a', {
-      captionsData: 'alt',
-      captionDelay: 250,
-    });
 
     lightbox.refresh();
 
+   checkEndOfResults(response.data.totalHits);
+
   }  catch(err) {
-
-      iziToast.show({
-      title: 'Error',
-      message: `Something went wrong. Please try again later.`,
-      messageColor: '#fff',
-      titleColor: '#fff',
-      messageSize: '16px',
-      messageLineHeight: '24px',
-      position: 'topRight',
-      closeOnClick: true,
-      maxWidth: '420px',
-      backgroundColor: '#EF4040',
-      progressBarColor: '#B51B1B',
-      iconUrl: '/img/error.svg',
-    });
-
-      loaderEl.classList.add("is-hidden");
+    showErrorMessage();
+    loaderEl.classList.add("is-hidden");
   };
 
 };
@@ -113,54 +140,18 @@ const onLoadBtnClick = async event => {
     const galleryCardsTemplate = response.data.hits.map(imgInfo => createGalleryTemplate(imgInfo)).join('');
     galleryEl.insertAdjacentHTML('beforeend', galleryCardsTemplate);
 
-    const lightbox = new SimpleLightbox('.gallery a', {
-    captionsData: 'alt',
-    captionDelay: 250,
-    });
-
     lightbox.refresh();
-
 
     scrollBy({
       top: cardHeight * 2,
       behavior: 'smooth',
     });
 
-    const totalLoadedPhotos = currentPage * 15;
-    if (totalLoadedPhotos >= response.data.totalHits) {
-       loadMoreBtnEl.classList.add('is-hidden');
-          iziToast.show({
-      message: `We're sorry, but you've reached the end of search results.`,
-      messageColor: '#fff',
-      titleColor: '#fff',
-      messageSize: '16px',
-      messageLineHeight: '24px',
-      position: 'topRight',
-      closeOnClick: true,
-      maxWidth: '350px',
-      backgroundColor: '#6c8cff',
-      progressBarColor: '#4e75ff',
-      iconUrl: '/img/sad_face.svg',
-      });
-    };
-    
-     loaderEl.classList.add('is-hidden');
+    checkEndOfResults(response.data.totalHits);
+    loaderEl.classList.add('is-hidden');
 
   } catch (err) {
-     iziToast.show({
-      title: 'Error',
-      message: `Something went wrong. Please try again later.`,
-      messageColor: '#fff',
-      titleColor: '#fff',
-      messageSize: '16px',
-      messageLineHeight: '24px',
-      position: 'topRight',
-      closeOnClick: true,
-      maxWidth: '420px',
-      backgroundColor: '#EF4040',
-      progressBarColor: '#B51B1B',
-      iconUrl: '/img/error.svg',
-    });
+    showErrorMessage();
   };
 };
 
