@@ -7,9 +7,9 @@ import "simplelightbox/dist/simple-lightbox.min.css";
 import { createGalleryTemplate } from '/js/render-functions';
 import { fetchPhotos } from '/js/pixabay-api';
 
-const errorIcon = '/img/error.svg';
-const warningIcon = '/img/warning.svg';
-const sadFaceIcon = '/img/sad_face.svg';
+import errorIcon from '/img/error.svg';
+import sadFaceIcon from '/img/sad_face.svg';
+import warningIcon from '/img/warning.svg';
 
 const searchFormEl = document.querySelector('.js-search-form');
 const galleryEl = document.querySelector('.js-gallery');
